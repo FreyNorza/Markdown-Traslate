@@ -108,46 +108,6 @@ El resultado se generará en la carpeta `dist/markdown-converter.exe`.
 
 ---
 
-## 📁 Estructura del Repositorio
-
-```
-├── main.py                        # Punto de entrada de la aplicación
-├── requirements.txt               # Dependencias Python
-├── build.bat                      # Script para compilar el ejecutable (.exe)
-├── markdown-converter.spec        # Configuración optimizada de PyInstaller
-├── LICENSE                        # Licencia MIT de código abierto
-├── README.md                      # Documentación del proyecto
-├── ui/
-│   ├── main_window.py             # Ventana principal con tabs y badges de estado
-│   ├── dialogs/
-│   │   └── cover_dialog.py        # Formulario modal para configurar la carátula
-│   ├── panels/
-│   │   ├── to_markdown_panel.py   # Panel Archivo → Markdown con vista previa
-│   │   └── to_word_panel.py       # Panel Markdown → Word (Pandoc / OMML)
-│   └── workers/
-│       └── conversion_worker.py   # QThread con soporte de cancelación
-├── converters/
-│   ├── markitdown_converter.py    # Conversión con Microsoft markitdown
-│   ├── cover_page.py              # Generación y persistencia de la carátula
-│   └── mdtranscode_converter.py   # Conversión con Pandoc + formateo OpenXML
-├── utils/
-│   └── resource_path.py           # Helper de rutas para desarrollo y PyInstaller
-└── assets/
-    └── icon.ico                   # Icono de la aplicación
-```
-
----
-
-## 🤝 Contribuciones
-
-¡Las contribuciones, reportes de bugs y sugerencias de mejoras son bienvenidas!
-1. Haz un Fork del proyecto.
-2. Crea una rama para tu característica (`git checkout -b feature/NuevaMejora`).
-3. Haz commit de tus cambios (`git commit -m 'feat: agrega nueva mejora'`).
-4. Sube tu rama (`git push origin feature/NuevaMejora`).
-5. Abre un **Pull Request**.
-
----
 
 ## 📄 Licencia
 
