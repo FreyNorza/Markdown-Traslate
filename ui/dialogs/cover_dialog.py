@@ -68,38 +68,38 @@ class CoverDialog(QDialog):
         form.setLabelAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
 
         self._institution = self._add_line(
-            form, "Institución:", "UNIVERSIDAD ANDINA DEL CUSCO"
+            form, "Institución:", "Ej: Universidad / Instituto..."
         )
         self._faculty = self._add_line(
-            form, "Facultad:", "FACULTAD DE INGENIERÍA Y ARQUITECTURA"
+            form, "Facultad:", "Ej: Facultad de..."
         )
         self._school = self._add_line(
-            form, "Escuela / Carrera:", "ESCUELA PROFESIONAL DE INGENIERÍA DE SISTEMAS"
+            form, "Escuela / Carrera:", "Ej: Escuela / Carrera profesional..."
         )
         self._title = self._add_line(
-            form, "Título del trabajo:", "Título del informe o actividad"
+            form, "Título del trabajo:", "Ej: Título del informe, práctica o actividad..."
         )
 
         self._students = QPlainTextEdit()
-        self._students.setPlaceholderText("Un integrante por línea")
+        self._students.setPlaceholderText("Un integrante por línea (Nombre y Apellidos)")
         self._students.setFixedHeight(64)
         self._students.setStyleSheet(self._input_style())
         form.addRow("Integrantes:", self._students)
 
         self._teacher = self._add_line(
-            form, "Docente:", "Nombre del docente"
+            form, "Docente:", "Ej: Nombre del docente..."
         )
         self._subject = self._add_line(
-            form, "Asignatura:", "Nombre de la asignatura"
+            form, "Asignatura:", "Ej: Nombre de la asignatura o curso..."
         )
         self._semester = self._add_line(
-            form, "Semestre académico:", "2026-2"
+            form, "Semestre académico:", "Ej: 2026-I, 2026-II..."
         )
 
         row = QHBoxLayout()
         row.setSpacing(8)
         self._city = QLineEdit()
-        self._city.setPlaceholderText("CUSCO - PERÚ")
+        self._city.setPlaceholderText("Ej: Ciudad - País")
         self._city.setFixedHeight(30)
         self._city.setStyleSheet(self._input_style())
         self._year = QLineEdit()
