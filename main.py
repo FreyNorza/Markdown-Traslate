@@ -14,7 +14,7 @@ def main():
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
     app.setApplicationName("Markdown Converter")
-    app.setApplicationVersion("1.0.0")
+    app.setApplicationVersion("1.1.0")
 
     icon_path = resource_path("assets/icon.ico")
     app.setWindowIcon(QIcon(icon_path))

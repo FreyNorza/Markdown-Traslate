@@ -32,3 +32,4 @@ pip install -r requirements.txt
 # Ejecutar aplicación
 python main.py
 ```
+

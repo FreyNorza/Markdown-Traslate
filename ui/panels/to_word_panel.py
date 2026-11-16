@@ -9,16 +9,20 @@ from __future__ import annotations
 import os
 import subprocess
 import sys
+from functools import partial
 from pathlib import Path
 
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
-    QFileDialog, QProgressBar, QFrame, QSizePolicy, QScrollArea
+    QFileDialog, QProgressBar, QFrame, QSizePolicy, QScrollArea,
+    QCheckBox, QDialog
 )
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QDragEnterEvent, QDropEvent, QFont
 
 from ui.workers.conversion_worker import ConversionWorker
+from ui.dialogs.cover_dialog import CoverDialog
+from converters.cover_page import CoverData, load_cover_config, save_cover_config
 from converters.mdtranscode_converter import convert_to_word, ConversionResult
 
 
@@ -137,6 +141,7 @@ class ToWordPanel(QWidget):
         self._output_dir: str = ""
         self._worker: ConversionWorker | None = None
         self._last_output_path: str = ""
+        self._cover_enabled, self._cover_data = load_cover_config()
         self._setup_ui()
 
     def _setup_ui(self) -> None:
@@ -273,6 +278,62 @@ class ToWordPanel(QWidget):
         file_card_layout.addWidget(self._btn_remove_file)
 
         root.addWidget(self._file_card)
+
+        # -------------------------------------------------------------
+        # 3.5 TARJETA DE CARÁTULA (PORTADA)
+        # -------------------------------------------------------------
+        self._cover_card = QFrame()
+        self._cover_card.setStyleSheet("""
+            QFrame {
+                background-color: #FFFFFF;
+                border: 1px solid #E2E8F0;
+                border-radius: 8px;
+                padding: 8px 12px;
+            }
+        """)
+        cover_layout = QHBoxLayout(self._cover_card)
+        cover_layout.setContentsMargins(12, 8, 12, 8)
+        cover_layout.setSpacing(10)
+
+        self._chk_cover = QCheckBox("Incluir carátula en la primera página")
+        self._chk_cover.setChecked(self._cover_enabled)
+        self._chk_cover.setStyleSheet("""
+            QCheckBox {
+                color: #1E293B;
+                font-size: 13px;
+                font-weight: 700;
+                spacing: 8px;
+            }
+        """)
+        self._chk_cover.toggled.connect(self._on_cover_toggled)
+        cover_layout.addWidget(self._chk_cover)
+
+        self._lbl_cover = QLabel()
+        self._lbl_cover.setWordWrap(False)
+        cover_layout.addWidget(self._lbl_cover, stretch=1)
+
+        self._btn_cover_config = QPushButton("⚙️  Configurar carátula...")
+        self._btn_cover_config.setFixedHeight(32)
+        self._btn_cover_config.setStyleSheet("""
+            QPushButton {
+                background-color: #F1F5F9;
+                color: #0F766E;
+                font-weight: 700;
+                font-size: 12px;
+                border-radius: 6px;
+                padding: 0 14px;
+                border: 1px solid #99F6E4;
+            }
+            QPushButton:hover {
+                background-color: #CCFBF1;
+                border-color: #0D9488;
+            }
+        """)
+        self._btn_cover_config.clicked.connect(self._on_configure_cover)
+        cover_layout.addWidget(self._btn_cover_config)
+
+        self._update_cover_summary()
+        root.addWidget(self._cover_card)
 
         # -------------------------------------------------------------
         # 4. BARRA DE ACCIONES DE CONVERSIÓN + BOTÓN DE CANCELAR
@@ -484,9 +545,65 @@ class ToWordPanel(QWidget):
             self._output_dir = folder
             self._lbl_outdir.setText(folder)
 
+    # ------------------------------------------------------------------
+    # Carátula
+    # ------------------------------------------------------------------
+
+    def _update_cover_summary(self) -> None:
+        """Muestra un resumen del título/institución configurados."""
+        if self._cover_data and self._cover_data.title:
+            summary = self._cover_data.title
+            if self._cover_data.institution:
+                summary += f"  ·  {self._cover_data.institution}"
+            if len(summary) > 78:
+                summary = summary[:75] + "…"
+            self._lbl_cover.setText(summary)
+            self._lbl_cover.setStyleSheet(
+                "color: #0F766E; font-size: 12px; font-weight: 600;"
+            )
+        else:
+            self._lbl_cover.setText("Aún no configurada")
+            self._lbl_cover.setStyleSheet(
+                "color: #94A3B8; font-size: 12px; font-style: italic;"
+            )
+
+    def _persist_cover_config(self) -> None:
+        try:
+            save_cover_config(self._cover_enabled, self._cover_data)
+        except OSError:
+            pass
+
+    def _on_cover_toggled(self, checked: bool) -> None:
+        self._cover_enabled = checked
+        self._persist_cover_config()
+
+    def _on_configure_cover(self) -> bool:
+        """
+        Abre el formulario de la carátula.
+
+        Returns:
+            True si el usuario guardó una carátula con título.
+        """
+        dialog = CoverDialog(self._cover_data, self)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            self._cover_data = dialog.cover_data()
+            self._cover_enabled = True
+            self._chk_cover.setChecked(True)
+            self._update_cover_summary()
+            self._persist_cover_config()
+            return True
+        return False
+
     def _on_convert(self) -> None:
         if not self._input_path:
             return
+
+        cover: CoverData | None = None
+        if self._chk_cover.isChecked():
+            if not self._cover_data.title:
+                if not self._on_configure_cover():
+                    return
+            cover = self._cover_data
 
         input_path = Path(self._input_path)
         out_dir = Path(self._output_dir) if self._output_dir else input_path.parent
@@ -497,7 +614,8 @@ class ToWordPanel(QWidget):
         self._result_card.setVisible(False)
         self._lbl_error.setVisible(False)
 
-        self._worker = ConversionWorker(convert_to_word, str(input_path), output_path)
+        convert_fn = partial(convert_to_word, cover=cover) if cover else convert_to_word
+        self._worker = ConversionWorker(convert_fn, str(input_path), output_path)
         self._worker.finished.connect(self._on_success)
         self._worker.error.connect(self._on_error)
         self._worker.cancelled.connect(self._on_cancelled_by_user)
@@ -592,6 +710,8 @@ class ToWordPanel(QWidget):
             self._btn_remove_file.setEnabled(False)
             self._btn_open.setEnabled(False)
             self._btn_change_dir.setEnabled(False)
+            self._chk_cover.setEnabled(False)
+            self._btn_cover_config.setEnabled(False)
             self._status_container.setVisible(True)
             self._lbl_status.setText("⏳  Procesando ecuaciones LaTeX y generando documento Word...")
         else:
@@ -601,4 +721,6 @@ class ToWordPanel(QWidget):
             self._btn_remove_file.setEnabled(True)
             self._btn_open.setEnabled(True)
             self._btn_change_dir.setEnabled(True)
+            self._chk_cover.setEnabled(True)
+            self._btn_cover_config.setEnabled(True)
             self._status_container.setVisible(False)

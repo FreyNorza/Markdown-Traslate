@@ -31,6 +31,8 @@ import tempfile
 from pathlib import Path
 from typing import NamedTuple
 
+from converters.cover_page import CoverData, insert_cover_page
+
 
 # ---------------------------------------------------------------------------
 # Tipos auxiliares
@@ -413,7 +415,11 @@ _PANDOC_EXTENSIONS = "+".join([
 ])
 
 
-def convert_to_word(input_path: str, output_path: str) -> ConversionResult:
+def convert_to_word(
+    input_path: str,
+    output_path: str,
+    cover: CoverData | None = None,
+) -> ConversionResult:
     """
     Convierte el archivo .md en input_path a .docx usando Pandoc,
     y luego aplica formato personalizado (Times New Roman, títulos en negrita).
@@ -426,6 +432,7 @@ def convert_to_word(input_path: str, output_path: str) -> ConversionResult:
     Args:
         input_path:  Ruta al archivo .md de entrada.
         output_path: Ruta donde se guardará el .docx.
+        cover:       Datos opcionales de la carátula a insertar al inicio.
 
     Returns:
         ConversionResult con la ruta de salida y lista de avisos.
@@ -500,6 +507,10 @@ def convert_to_word(input_path: str, output_path: str) -> ConversionResult:
 
         # --- Post-procesar: aplicar Times New Roman y negrita en títulos ---
         _postprocess_docx(output_path)
+
+        # --- Insertar carátula al inicio (si se configuró) ---
+        if cover is not None and not cover.is_empty():
+            warnings.extend(insert_cover_page(output_path, cover))
 
     finally:
         # Limpiar archivo temporal

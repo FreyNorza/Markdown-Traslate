@@ -45,6 +45,7 @@ Diseñado específicamente para estudiantes, ingenieros, matemáticos y científ
 - **Formato Profesional Estricto:**
   - Tipografía **Times New Roman** en todo el documento (cuerpo en 12 pt).
   - Títulos y subtítulos en **negrita y color negro puro (`#000000`)**, eliminando la tonalidad azul por defecto de Word.
+- **Carátula institucional opcional:** agrega una portada en la página 1 con universidad, facultad, escuela, título, integrantes, docente, asignatura, semestre, ciudad, año y logo. Los datos quedan guardados para reutilizarlos en próximas conversiones.
 - **Tablas y Listas:** Preserva tablas complejas, listas de tareas, notas al pie y código resaltado.
 
 ### 3. 🎨 Experiencia de Usuario (UI/UX)
@@ -118,6 +119,8 @@ El resultado se generará en la carpeta `dist/markdown-converter.exe`.
 ├── README.md                      # Documentación del proyecto
 ├── ui/
 │   ├── main_window.py             # Ventana principal con tabs y badges de estado
+│   ├── dialogs/
+│   │   └── cover_dialog.py        # Formulario modal para configurar la carátula
 │   ├── panels/
 │   │   ├── to_markdown_panel.py   # Panel Archivo → Markdown con vista previa
 │   │   └── to_word_panel.py       # Panel Markdown → Word (Pandoc / OMML)
@@ -125,6 +128,7 @@ El resultado se generará en la carpeta `dist/markdown-converter.exe`.
 │       └── conversion_worker.py   # QThread con soporte de cancelación
 ├── converters/
 │   ├── markitdown_converter.py    # Conversión con Microsoft markitdown
+│   ├── cover_page.py              # Generación y persistencia de la carátula
 │   └── mdtranscode_converter.py   # Conversión con Pandoc + formateo OpenXML
 ├── utils/
 │   └── resource_path.py           # Helper de rutas para desarrollo y PyInstaller
